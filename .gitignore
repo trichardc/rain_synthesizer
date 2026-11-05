@@ -42,6 +42,7 @@
 build/
 Build/
 build-*/
+.venv/
 
 # CMake generated files
 CMakeFiles/
