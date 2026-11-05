@@ -1,10 +1,11 @@
 
-#include "SygitntheticSensors.h"
+#include "SyntheticSensors.h"
 #include "SensorCsvWriter.h"
 #include <iostream>
 #include <exception>
 
 /**
+ * cd into folder
  * Run in powershell:
  * "g++ -std=c++17 -O2 main.cpp SyntheticSensors.cpp SensorCsvWriter.cpp -o sensor_gen.exe"
  *
