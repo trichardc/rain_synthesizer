@@ -3,10 +3,8 @@
 #include <Adafruit_SHT31.h>
 #include <Adafruit_VEML7700.h>
 
-// ===== Piezo analog pins (direct, no multiplexer) =====
-const int PIEZO_PINS[] = {A0, A1, A2, A3};
-// For 8 piezos later, replace with:
-// const int PIEZO_PINS[] = {A0, A1, A2, A3, A8, A9, A10, A11};
+// ===== Digital piezo pins (direct, no multiplexer) =====
+const int PIEZO_PINS[] = {14, 15, 16, 17, 18, 19, 20, 21};
 
 const int NUM_PIEZOS = sizeof(PIEZO_PINS) / sizeof(PIEZO_PINS[0]);
 
@@ -34,12 +32,10 @@ void setup()
     while (!Serial && millis() < 3000)
         ;
 
-    analogReadResolution(12); // 0..4095
-
     for (int i = 0; i < NUM_PIEZOS; i++)
     {
         pinMode(PIEZO_PINS[i], INPUT);
-        chMin[i] = 4095;
+        chMin[i] = 1;
         chMax[i] = 0;
     }
 
@@ -69,11 +65,11 @@ void loop()
     // 1) Read every piezo pin back-to-back
     for (int ch = 0; ch < NUM_PIEZOS; ch++)
     {
-        int v = analogRead(PIEZO_PINS[ch]);
-        if (v < chMin[ch])
-            chMin[ch] = v;
-        if (v > chMax[ch])
-            chMax[ch] = v;
+        int v = digitalRead(PIEZO_PINS[ch]);
+        if (v == LOW)
+            chMin[ch] = 0;
+        if (v == HIGH)
+            chMax[ch] = 1;
     }
 
     unsigned long now = millis();
@@ -109,7 +105,7 @@ void loop()
             Serial.print("P");
             Serial.print(ch);
             Serial.print(":");
-            Serial.print(chMax[ch] - chMin[ch]); // peak-to-peak
+            Serial.print(chMax[ch] - chMin[ch]); // 0 = low, 1 = one pulse
             Serial.print(",");
         }
         Serial.print("Temp:");
@@ -122,7 +118,7 @@ void loop()
         // Reset windows for the next report
         for (int ch = 0; ch < NUM_PIEZOS; ch++)
         {
-            chMin[ch] = 4095;
+            chMin[ch] = 1;
             chMax[ch] = 0;
         }
     }

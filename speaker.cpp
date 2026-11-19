@@ -3,7 +3,7 @@
 #include <Audio.h>
 
 namespace {
-constexpr uint8_t VOICE_COUNT = 6;
+constexpr uint8_t VOICE_COUNT = 8;
 constexpr uint32_t RELEASE_MS = 300;
 constexpr float VOICE_AMPLITUDE = 0.22f;
 
@@ -13,12 +13,16 @@ AudioSynthWaveformSine sine2;
 AudioSynthWaveformSine sine3;
 AudioSynthWaveformSine sine4;
 AudioSynthWaveformSine sine5;
+AudioSynthWaveformSine sine6;
+AudioSynthWaveformSine sine7;
 AudioEffectEnvelope envelope0;
 AudioEffectEnvelope envelope1;
 AudioEffectEnvelope envelope2;
 AudioEffectEnvelope envelope3;
 AudioEffectEnvelope envelope4;
 AudioEffectEnvelope envelope5;
+AudioEffectEnvelope envelope6;
+AudioEffectEnvelope envelope7;
 AudioMixer4 lowerVoiceMixer;
 AudioMixer4 upperVoiceMixer;
 AudioMixer4 outputMixer;
@@ -29,12 +33,16 @@ AudioConnection sineToEnvelope2(sine2, 0, envelope2, 0);
 AudioConnection sineToEnvelope3(sine3, 0, envelope3, 0);
 AudioConnection sineToEnvelope4(sine4, 0, envelope4, 0);
 AudioConnection sineToEnvelope5(sine5, 0, envelope5, 0);
+AudioConnection sineToEnvelope6(sine6, 0, envelope6, 0);
+AudioConnection sineToEnvelope7(sine7, 0, envelope7, 0);
 AudioConnection envelopeToLowerMixer0(envelope0, 0, lowerVoiceMixer, 0);
 AudioConnection envelopeToLowerMixer1(envelope1, 0, lowerVoiceMixer, 1);
 AudioConnection envelopeToLowerMixer2(envelope2, 0, lowerVoiceMixer, 2);
 AudioConnection envelopeToLowerMixer3(envelope3, 0, lowerVoiceMixer, 3);
 AudioConnection envelopeToUpperMixer0(envelope4, 0, upperVoiceMixer, 0);
 AudioConnection envelopeToUpperMixer1(envelope5, 0, upperVoiceMixer, 1);
+AudioConnection envelopeToUpperMixer2(envelope6, 0, upperVoiceMixer, 2);
+AudioConnection envelopeToUpperMixer3(envelope7, 0, upperVoiceMixer, 3);
 AudioConnection lowerMixerToOutput(lowerVoiceMixer, 0, outputMixer, 0);
 AudioConnection upperMixerToOutput(upperVoiceMixer, 0, outputMixer, 1);
 AudioConnection outputToLeft(outputMixer, 0, i2sOutput, 0);
@@ -56,6 +64,8 @@ VoiceState voices[VOICE_COUNT] = {
     {&sine3, &envelope3, 0, 0, false, false},
     {&sine4, &envelope4, 0, 0, false, false},
     {&sine5, &envelope5, 0, 0, false, false},
+    {&sine6, &envelope6, 0, 0, false, false},
+    {&sine7, &envelope7, 0, 0, false, false},
 };
 }
 
@@ -63,10 +73,12 @@ void speakerBegin() {
     AudioMemory(40);
 
     AudioSynthWaveformSine* oscillators[] = {
-        &sine0, &sine1, &sine2, &sine3, &sine4, &sine5};
+        &sine0, &sine1, &sine2, &sine3,
+        &sine4, &sine5, &sine6, &sine7};
     AudioEffectEnvelope* envelopes[] = {
         &envelope0, &envelope1, &envelope2,
-        &envelope3, &envelope4, &envelope5};
+        &envelope3, &envelope4, &envelope5,
+        &envelope6, &envelope7};
 
     for (uint8_t index = 0; index < VOICE_COUNT; ++index) {
         oscillators[index]->frequency(440.0f);

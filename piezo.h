@@ -2,5 +2,7 @@
 
 #include <Arduino.h>
 
+static constexpr uint8_t PIEZO_COUNT = 8;
+
 void piezoBegin();
-int piezoRead();
+bool piezoRead(uint8_t index);

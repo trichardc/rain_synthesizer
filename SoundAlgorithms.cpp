@@ -5,46 +5,54 @@
 #include "piezo.h"
 
 namespace {
-constexpr float SENSOR_ZERO = 1750.0f;
-constexpr float IMPACT_THRESHOLD = 500.0f;
-constexpr float REARM_THRESHOLD = 250.0f;
 constexpr uint32_t IMPACT_COOLDOWN_MS = 400;
 constexpr uint16_t NOTE_FREQUENCIES[] = {262, 330, 392};
 
-uint32_t lastImpactTime = 0;
-bool detectorArmed = true;
+uint32_t lastImpactTime[PIEZO_COUNT] = {};
+bool detectorArmed[PIEZO_COUNT] = {};
 size_t lastNoteIndex = sizeof(NOTE_FREQUENCIES) / sizeof(NOTE_FREQUENCIES[0]);
 }
 
 void soundAlgorithmsBegin() {
-	lastImpactTime = millis() - IMPACT_COOLDOWN_MS;
-	detectorArmed = true;
+	const uint32_t now = millis();
+	for (uint8_t index = 0; index < PIEZO_COUNT; ++index) {
+		lastImpactTime[index] = now - IMPACT_COOLDOWN_MS;
+		detectorArmed[index] = true;
+	}
 	lastNoteIndex = sizeof(NOTE_FREQUENCIES) / sizeof(NOTE_FREQUENCIES[0]);
-	randomSeed(analogRead(A0) ^ micros());
 }
 
-bool soundAlgorithmsUpdate(uint16_t& noteFrequency) {
-	const int sample = piezoRead();
+bool soundAlgorithmsUpdate(uint16_t &noteFrequency, uint8_t &sensorIndex) {
 	const uint32_t now = millis();
-	const float deviation = fabsf(static_cast<float>(sample) - SENSOR_ZERO);
-	if (deviation <= REARM_THRESHOLD) {
-		detectorArmed = true;
-	}
+	for (uint8_t index = 0; index < PIEZO_COUNT; ++index) {
+		const bool signalHigh = piezoRead(index);
+		if (!signalHigh) {
+			detectorArmed[index] = true;
+			continue;
+		}
+		if (!detectorArmed[index] ||
+			now - lastImpactTime[index] < IMPACT_COOLDOWN_MS) {
+			continue;
+		}
 
-	if (!detectorArmed || deviation <= IMPACT_THRESHOLD ||
-		now - lastImpactTime < IMPACT_COOLDOWN_MS) {
-		return false;
-	}
+		lastImpactTime[index] = now;
+		detectorArmed[index] = false;
+		sensorIndex = index;
 
-	lastImpactTime = now;
-	detectorArmed = false;
-	const size_t noteCount = sizeof(NOTE_FREQUENCIES) /
-						sizeof(NOTE_FREQUENCIES[0]);
-	size_t noteIndex;
-	do {
-		noteIndex = random(0, noteCount);
-	} while (noteIndex == lastNoteIndex);
-	lastNoteIndex = noteIndex;
-	noteFrequency = NOTE_FREQUENCIES[noteIndex];
-	return true;
+		const size_t noteCount = sizeof(NOTE_FREQUENCIES) /
+								sizeof(NOTE_FREQUENCIES[0]);
+		size_t noteIndex;
+		do {
+			noteIndex = random(0, noteCount);
+		} while (noteIndex == lastNoteIndex);
+		lastNoteIndex = noteIndex;
+		noteFrequency = NOTE_FREQUENCIES[noteIndex];
+		return true;
+	}
+	return false;
+}
+
+bool soundAlgorithmsUpdate(uint16_t &noteFrequency) {
+	uint8_t sensorIndex = 0;
+	return soundAlgorithmsUpdate(noteFrequency, sensorIndex);
 }
