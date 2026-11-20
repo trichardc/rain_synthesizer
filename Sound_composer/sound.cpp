@@ -618,6 +618,7 @@ void PiezoSoundEngine::setTemperature(
         0.0f,
         40.0f
     );
+    temperatureAvailable = true;
 }
 float PiezoSoundEngine::getBassFrequency() {
 
@@ -660,6 +661,10 @@ void PiezoSoundEngine::triggerBass() {
 }
 
 void PiezoSoundEngine::updateBass() {
+
+    if (!temperatureAvailable) {
+        return;
+    }
 
     unsigned long now = millis();
 

@@ -37,7 +37,8 @@ public:
 private:
 // Temperature-dependent bass
 
-float temperatureC = 20.0f;
+float temperatureC = 0.0f;
+bool temperatureAvailable = false;
 
 unsigned long lastBassTime = 0;
 unsigned long bassInterval = 4000;

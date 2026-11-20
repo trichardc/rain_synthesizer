@@ -7,9 +7,11 @@
 #include "Sound_composer/sound.h"
 
 namespace {
-constexpr uint8_t PIEZO_PINS[] = {14, 15, 16, 17, 18, 19};
+constexpr uint8_t PIEZO_PINS[] = {14, 15, 16, 17, 22, 23};
 constexpr uint8_t PIEZO_COUNT =
     sizeof(PIEZO_PINS) / sizeof(PIEZO_PINS[0]);
+// Sound channels 1 and 5 are kept in the engine but currently unused.
+constexpr uint8_t SOUND_CHANNELS[] = {1, 2, 3, 5, 6, 7};
 constexpr uint32_t PIEZO_RETRIGGER_MS = 100;
 constexpr uint32_t ENVIRONMENT_INTERVAL_MS = 1000;
 
@@ -67,9 +69,12 @@ void pollPiezoInputs(uint32_t now) {
         if (risingEdge &&
             now - lastPiezoTrigger[index] >= PIEZO_RETRIGGER_MS) {
             lastPiezoTrigger[index] = now;
-            soundEngine.trigger(index);
-            Serial.print(F("Piezo "));
-            Serial.println(index);
+            const uint8_t soundChannel = SOUND_CHANNELS[index];
+            soundEngine.trigger(soundChannel);
+            Serial.print(F("Piezo pin "));
+            Serial.print(PIEZO_PINS[index]);
+            Serial.print(F(" -> sound channel "));
+            Serial.println(soundChannel + 1);
         }
     }
 }
